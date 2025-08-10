@@ -26,9 +26,12 @@
         android:background="#33000000" />
 
     <!-- Logo superior derecho -->
+
+    <!-- Contenido principal (arriba-izquierda) -->
+
     <ImageView
         android:id="@+id/logoFondo"
-        android:layout_width="240dp"
+        android:layout_width="233dp"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
         android:layout_marginTop="-50dp"
@@ -38,7 +41,6 @@
         android:scaleType="fitEnd"
         android:src="@drawable/logofondo" />
 
-    <!-- Contenido principal (arriba-izquierda) -->
     <LinearLayout
         android:id="@+id/topLeftBlock"
         android:layout_width="wrap_content"

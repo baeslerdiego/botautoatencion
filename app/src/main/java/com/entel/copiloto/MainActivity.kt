@@ -64,7 +64,6 @@ class MainActivity : AppCompatActivity() {
         btnFaqWifi = findViewById(R.id.btnFaqWifi)
         btnFaqCanales = findViewById(R.id.btnFaqCanales)
 
-        // Título fijo nunca se toca
         // Estado inicial: mostrar instrucciones
         showInstructions()
 
@@ -74,7 +73,7 @@ class MainActivity : AppCompatActivity() {
 
         // FAQ → actualizan el contenedor
         btnFaqMax.setOnClickListener { showText("Activación de MAX: pronto disponible aquí.") }
-        btnFaqDisney.setOnClickListener { showText("Activación de Disney+: pronto disponible aquí.") }
+        btnFaqDisney.setOnClickListener { showImage(R.drawable.disney, "Instrucciones para activar Disney+") }
         btnFaqWifi.setOnClickListener { showText("Cambiar Wi‑Fi: en breve mostraremos pasos guiados.") }
         btnFaqCanales.setOnClickListener { showText("Explorar canales: pronto mostraremos parrilla y buscador.") }
 
@@ -98,7 +97,8 @@ class MainActivity : AppCompatActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
-    // Reconocimiento de voz
+    // ---------------- Reconocimiento de voz ----------------
+
     private fun startSpeechRecognition() {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
@@ -121,7 +121,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Helpers de render
+    // ---------------- Helpers de render ----------------
+
     private fun showInstructions() {
         contenedorIntencion.removeAllViews()
         tvInstrucciones.visibility = View.VISIBLE
@@ -155,6 +156,7 @@ class MainActivity : AppCompatActivity() {
         val iv = ImageView(this).apply {
             setImageResource(resId)
             scaleType = ImageView.ScaleType.FIT_CENTER
+            adjustViewBounds = true
             this.contentDescription = contentDescription
             isFocusable = true
             isFocusableInTouchMode = true
@@ -227,7 +229,8 @@ class MainActivity : AppCompatActivity() {
         ))
     }
 
-    // Overlays
+    // ---------------- Overlays ----------------
+
     private fun showCelebration(timeoutMs: Long = 5000L) {
         celebrationImage.setImageResource(R.drawable.celebration)
         celebrationImage.visibility = View.VISIBLE
@@ -243,47 +246,54 @@ class MainActivity : AppCompatActivity() {
         qrImageOverlayLegacy.visibility = View.GONE
     }
 
-    // Intenciones
+    // ---------------- Intenciones ----------------
+
     private fun interpretCommand(transcript: String) {
         val lower = transcript.lowercase()
         when {
+            // Disney por voz -> mostrar imagen disney.png
+            listOf("disney", "disney+").any { lower.contains(it) } -> {
+                showImage(R.drawable.disney, "Instrucciones para activar Disney+")
+            }
+
             listOf("wifi", "internet", "conexión", "se cayó", "sin red").any { lower.contains(it) } -> {
                 showText("Haremos un diagnóstico para resolver tu problema de conectividad.")
             }
-            listOf("disney", "disney+", "netflix", "asociar cuenta", "login").any { lower.contains(it) } -> {
-                showText(
-                    "Pasos para asociar tu cuenta Disney:\n" +
-                            "1) Abre la app Disney+.\n" +
-                            "2) Ve a “Iniciar sesión”.\n" +
-                            "3) Ingresa el código en disneyplus.com/begin."
-                )
-            }
+
             listOf("hablar con alguien", "necesito ayuda", "ejecutivo", "me contacten").any { lower.contains(it) } -> {
                 showQrInContainer()
             }
+
             listOf("noticias", "canales de noticias", "quiero ver noticias", "informativo").any { lower.contains(it) } -> {
                 showText("Noticias disponibles: CNN Chile HD (54), T13 HD (56), CHV HD (66), Canal 13 HD (67).")
             }
+
             listOf("deportes", "canales de deporte", "ver deportes", "partido").any { lower.contains(it) } -> {
                 showText("Deportes: ESPN HD (212), ESPN 2 HD (214), ESPN 3 HD (216), ESPN 4 (213), ESPN 6 (211).")
             }
+
             lower.contains("chilevisión") || lower.contains("chv") -> {
                 showChannelCard("Chilevisión", "66")
             }
+
             lower.contains("mega") -> {
                 showChannelCard("Mega HD", "65")
             }
+
             lower.contains("tnt sport") || lower.contains("tnt deportes") -> {
                 showChannelCard("TNT Sports", "109")
             }
+
             lower.contains("playboy") -> {
                 showChannelCard("Playboy", "401", contratable = true)
             }
+
             (listOf("eduardo", "edu", "idea").any { lower.contains(it) } &&
                     (lower.contains("gustó") || lower.contains("gusto"))) -> {
                 showCelebration()
                 showText("¡Gracias por el apoyo! 🎊")
             }
+
             else -> {
                 showText("No entendí tu solicitud. ¿Puedes repetirlo de otra manera?")
             }

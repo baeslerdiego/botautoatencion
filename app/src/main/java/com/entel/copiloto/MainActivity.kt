@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.speech.RecognizerIntent
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,8 @@ import android.widget.*
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import android.graphics.Color
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -72,9 +75,9 @@ class MainActivity : AppCompatActivity() {
         btnListen.setOnClickListener { startSpeechRecognition() }
 
         // FAQ → actualizan el contenedor
-        btnFaqMax.setOnClickListener { showText("Activación de MAX: pronto disponible aquí.") }
+        btnFaqMax.setOnClickListener { showImage(R.drawable.max, "Instrucciones para activar Max") }
         btnFaqDisney.setOnClickListener { showImage(R.drawable.disney, "Instrucciones para activar Disney+") }
-        btnFaqWifi.setOnClickListener { showText("Cambiar Wi‑Fi: en breve mostraremos pasos guiados.") }
+        btnFaqWifi.setOnClickListener { showWifiCard() }
         btnFaqCanales.setOnClickListener { showText("Explorar canales: pronto mostraremos parrilla y buscador.") }
 
         // Back: si hay contenido distinto a instrucciones → volver a instrucciones
@@ -148,7 +151,9 @@ class MainActivity : AppCompatActivity() {
         contenedorIntencion.addView(tv, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
-        ))
+        ).apply {
+            gravity = Gravity.CENTER_VERTICAL
+        })
     }
 
     private fun showImage(resId: Int, contentDescription: String? = null) {
@@ -164,7 +169,9 @@ class MainActivity : AppCompatActivity() {
         contenedorIntencion.addView(iv, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
-        ))
+        ).apply {
+            gravity = Gravity.CENTER_VERTICAL
+        })
     }
 
     private fun showChannelCard(nombre: String, numero: String, contratable: Boolean = false) {
@@ -200,14 +207,16 @@ class MainActivity : AppCompatActivity() {
         contenedorIntencion.addView(container, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
-        ))
+        ).apply {
+            gravity = Gravity.CENTER_VERTICAL
+        })
     }
 
     private fun showQrInContainer() {
         clearDynamicArea()
         val wrapper = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            gravity = android.view.Gravity.CENTER_HORIZONTAL
+            gravity = Gravity.CENTER_HORIZONTAL
             setPadding(16, 16, 16, 16)
         }
         val iv = ImageView(this).apply {
@@ -226,7 +235,154 @@ class MainActivity : AppCompatActivity() {
         contenedorIntencion.addView(wrapper, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
-        ))
+        ).apply {
+            gravity = Gravity.CENTER_VERTICAL
+        })
+    }
+
+    // -------- CARD Cambiar Wi‑Fi --------
+    private fun showWifiCard() {
+        clearDynamicArea()
+
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 20, 20, 20)
+            background = resources.getDrawable(R.drawable.bg_card, theme)
+            isFocusable = true
+            isFocusableInTouchMode = true
+        }
+
+        // Header: icono + título
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val wifiIcon = ImageView(this).apply {
+            setImageResource(R.drawable.ic_wifi)
+            contentDescription = "Icono Wi‑Fi"
+        }
+        val title = TextView(this).apply {
+            text = "Redes unificadas"
+            textSize = 22f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(0xFFFFFFFF.toInt())
+            setPadding(8, 0, 0, 0)
+        }
+        header.addView(wifiIcon, LinearLayout.LayoutParams(24, 24))
+        header.addView(title)
+        card.addView(header)
+
+        // Subtítulo
+        val subtitle = TextView(this).apply {
+            text = "Tu red 2.4 GHz y 5 GHz está unida"
+            textSize = 16f
+            setTextColor(0xB3FFFFFF.toInt()) // gris claro
+            setPadding(0, 6, 0, 12)
+        }
+        card.addView(subtitle)
+
+        // Nombre de red
+        val ssidRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        val ssidLabel = TextView(this).apply {
+            text = "Nombre de red:"
+            textSize = 18f
+            setTextColor(0xFFFFFFFF.toInt())
+        }
+        val ssidValue = TextView(this).apply {
+            text = "  ExperienciaTV"
+            textSize = 18f
+            setTextColor(0xFFFFFFFF.toInt())
+            setTypeface(typeface, Typeface.BOLD)
+        }
+        ssidRow.addView(ssidLabel)
+        ssidRow.addView(ssidValue)
+        card.addView(ssidRow)
+
+        // Clave
+        val passRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 4, 0, 0)
+        }
+        val passLabel = TextView(this).apply {
+            text = "Clave:"
+            textSize = 18f
+            setTextColor(0xFFFFFFFF.toInt())
+        }
+        val passValue = TextView(this).apply {
+            text = "  ************"
+            textSize = 18f
+            setTextColor(0xFFFFFFFF.toInt())
+            setTypeface(typeface, Typeface.BOLD)
+        }
+        passRow.addView(passLabel)
+        passRow.addView(passValue)
+        card.addView(passRow)
+
+        // Botones
+        val btnRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 16, 0, 0)
+        }
+        val btnCambiarNombre = Button(this).apply {
+            text = "Cambiar nombre de red"
+            isFocusable = true
+            isFocusableInTouchMode = true
+            background = resources.getDrawable(R.drawable.btn_highlight, theme)
+            setTextColor(Color.WHITE)
+        }
+        val btnCambiarClave = Button(this).apply {
+            text = "Cambiar clave"
+            isFocusable = true
+            isFocusableInTouchMode = true
+            background = resources.getDrawable(R.drawable.btn_highlight, theme)
+            setTextColor(Color.WHITE)
+        }
+        val lpWeight = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+            setMargins(0, 0, 12, 0)
+        }
+        val lpWeightRight = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        btnRow.addView(btnCambiarNombre, lpWeight)
+        btnRow.addView(btnCambiarClave, lpWeightRight)
+        card.addView(btnRow)
+
+        // Advertencia
+        val warnRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 16, 0, 0)
+            gravity = Gravity.START
+        }
+        val warnIcon = TextView(this).apply {
+            text = "⚠"
+            textSize = 18f
+            setTextColor(0xFFFFD54F.toInt()) // amarillo
+            setPadding(0, 0, 6, 0)
+        }
+        val warnText = TextView(this).apply {
+            text = "Al cambiar el nombre o la clave, todos los dispositivos se desconectarán y deberás volver a conectarlos."
+            textSize = 14f
+            setTextColor(0xFFB0BEC5.toInt()) // gris oscuro
+        }
+        warnRow.addView(warnIcon)
+        warnRow.addView(warnText)
+        card.addView(warnRow)
+
+        // Agregar card al contenedor (centrado vertical)
+        contenedorIntencion.addView(card, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
+            gravity = Gravity.CENTER_VERTICAL
+        })
+
+        // TODO: acciones de botones (en una siguiente iteración)
+        btnCambiarNombre.setOnClickListener {
+            Toast.makeText(this, "Próximamente: cambio de nombre de red", Toast.LENGTH_SHORT).show()
+        }
+        btnCambiarClave.setOnClickListener {
+            Toast.makeText(this, "Próximamente: cambio de clave", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // ---------------- Overlays ----------------
@@ -251,43 +407,67 @@ class MainActivity : AppCompatActivity() {
     private fun interpretCommand(transcript: String) {
         val lower = transcript.lowercase()
         when {
-            // Disney por voz -> mostrar imagen disney.png
-            listOf("disney", "disney+").any { lower.contains(it) } -> {
+            // Max
+            listOf("hbo max", "activar max", "quiero hbo", "quiero max", "max", "hbo")
+                .any { lower.contains(it) } -> {
+                showImage(R.drawable.max, "Instrucciones para activar Max")
+            }
+
+            // Disney
+            listOf("disney+", "disney plus", "activar disney", "quiero disney", "disney")
+                .any { lower.contains(it) } -> {
                 showImage(R.drawable.disney, "Instrucciones para activar Disney+")
             }
 
-            listOf("wifi", "internet", "conexión", "se cayó", "sin red").any { lower.contains(it) } -> {
-                showText("Haremos un diagnóstico para resolver tu problema de conectividad.")
+            // Cambiar Wi‑Fi (diagnóstico / gestión)
+            listOf(
+                "cambiar clave wifi", "contraseña wifi", "contrasena wifi",
+                "cambiar clave", "cambiar wifi", "clave de wifi",
+                "wifi", "wi-fi", "internet", "conexión", "conexion", "se cayó", "se cayo", "sin red"
+            ).any { lower.contains(it) } -> {
+                showWifiCard()
             }
 
-            listOf("hablar con alguien", "necesito ayuda", "ejecutivo", "me contacten").any { lower.contains(it) } -> {
+            // Contacto
+            listOf("hablar con ejecutivo", "quiero hablar con un ejecutivo",
+                "ejecutivo", "atención", "atencion", "contactar",
+                "necesito ayuda", "me contacten").any { lower.contains(it) } -> {
                 showQrInContainer()
             }
 
-            listOf("noticias", "canales de noticias", "quiero ver noticias", "informativo").any { lower.contains(it) } -> {
+            // Noticias
+            listOf("canales de noticias", "quiero ver noticias", "informativo", "noticias")
+                .any { lower.contains(it) } -> {
                 showText("Noticias disponibles: CNN Chile HD (54), T13 HD (56), CHV HD (66), Canal 13 HD (67).")
             }
 
-            listOf("deportes", "canales de deporte", "ver deportes", "partido").any { lower.contains(it) } -> {
+            // Deportes
+            listOf("canales de deporte", "ver deportes", "partido", "deportes")
+                .any { lower.contains(it) } -> {
                 showText("Deportes: ESPN HD (212), ESPN 2 HD (214), ESPN 3 HD (216), ESPN 4 (213), ESPN 6 (211).")
             }
 
-            lower.contains("chilevisión") || lower.contains("chv") -> {
+            // Canales específicos
+            lower.contains("chilevisión") || lower.contains("chilevision") || lower.contains("chv") -> {
                 showChannelCard("Chilevisión", "66")
             }
-
             lower.contains("mega") -> {
                 showChannelCard("Mega HD", "65")
             }
-
-            lower.contains("tnt sport") || lower.contains("tnt deportes") -> {
+            lower.contains("tnt sports") || lower.contains("tnt sport") || lower.contains("tnt deportes") -> {
                 showChannelCard("TNT Sports", "109")
             }
-
-            lower.contains("playboy") -> {
+            lower.contains("playboy") || lower.contains("canal 401") || lower.contains("quiero playboy") -> {
                 showChannelCard("Playboy", "401", contratable = true)
             }
 
+            // Ver canales (genérico)
+            listOf("ver canales", "muéstrame canales", "muestrame canales", "quiero mis canales", "canales")
+                .any { lower.contains(it) } -> {
+                showText("Explorar canales: pronto mostraremos parrilla y buscador.")
+            }
+
+            // Easter egg
             (listOf("eduardo", "edu", "idea").any { lower.contains(it) } &&
                     (lower.contains("gustó") || lower.contains("gusto"))) -> {
                 showCelebration()

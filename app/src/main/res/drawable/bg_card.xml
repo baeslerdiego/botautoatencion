@@ -1,7 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#26000000"/>   <!-- negro 15% -->
-    <corners android:radius="16dp"/>
-    <stroke android:width="1dp" android:color="#33FFFFFF"/> <!-- trazo blanco 20% -->
-    <padding android:left="12dp" android:top="12dp" android:right="12dp" android:bottom="12dp"/>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Fondo translúcido (negro 16%) -->
+    <solid android:color="#29000000"/>  <!-- ~16% -->
+
+    <!-- Bordes redondeados -->
+    <corners android:radius="16dp" />
+
+    <!-- Borde sutil (blanco 25%) -->
+    <stroke
+        android:width="1dp"
+        android:color="#40FFFFFF" />
+
+    <!-- Padding interno para que el borde no toque el contenido -->
+    <padding
+        android:left="12dp"
+        android:top="12dp"
+        android:right="12dp"
+        android:bottom="12dp" />
 </shape>

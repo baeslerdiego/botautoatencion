@@ -61,7 +61,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- FILA 1 -->
+        <!-- ==== FILA (plantilla repetida) ==== -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -92,13 +92,15 @@
 
             <Button
                 android:id="@+id/btnContratar1"
-                android:layout_width="wrap_content"
+                android:layout_width="120dp"
                 android:layout_height="28dp"
+                android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
                 android:paddingTop="0dp"
                 android:paddingBottom="0dp"
+                android:gravity="center"
                 android:text="CONTRATAR"
                 android:textSize="13sp"
                 android:textColor="#FFFFFFFF"
@@ -139,13 +141,15 @@
 
             <Button
                 android:id="@+id/btnContratar2"
-                android:layout_width="wrap_content"
+                android:layout_width="120dp"
                 android:layout_height="28dp"
+                android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
                 android:paddingTop="0dp"
                 android:paddingBottom="0dp"
+                android:gravity="center"
                 android:text="CONTRATAR"
                 android:textSize="13sp"
                 android:textColor="#FFFFFFFF"
@@ -186,13 +190,15 @@
 
             <Button
                 android:id="@+id/btnContratar3"
-                android:layout_width="wrap_content"
+                android:layout_width="120dp"
                 android:layout_height="28dp"
+                android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
                 android:paddingTop="0dp"
                 android:paddingBottom="0dp"
+                android:gravity="center"
                 android:text="CONTRATAR"
                 android:textSize="13sp"
                 android:textColor="#FFFFFFFF"
@@ -233,13 +239,15 @@
 
             <Button
                 android:id="@+id/btnContratar4"
-                android:layout_width="wrap_content"
+                android:layout_width="120dp"
                 android:layout_height="28dp"
+                android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
                 android:paddingTop="0dp"
                 android:paddingBottom="0dp"
+                android:gravity="center"
                 android:text="CONTRATAR"
                 android:textSize="13sp"
                 android:textColor="#FFFFFFFF"
@@ -280,13 +288,15 @@
 
             <Button
                 android:id="@+id/btnContratar5"
-                android:layout_width="wrap_content"
+                android:layout_width="120dp"
                 android:layout_height="28dp"
+                android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
                 android:paddingTop="0dp"
                 android:paddingBottom="0dp"
+                android:gravity="center"
                 android:text="CONTRATAR"
                 android:textSize="13sp"
                 android:textColor="#FFFFFFFF"
@@ -305,5 +315,4 @@
         android:textColor="#FFB0BEC5"
         android:textSize="12sp"
         android:layout_marginTop="8dp" />
-
 </LinearLayout>

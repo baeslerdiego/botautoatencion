@@ -5,59 +5,49 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.speech.RecognizerIntent
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebChromeClient
+import android.webkit.WebView
 import android.widget.*
-import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 
 class MainActivity : AppCompatActivity() {
 
-    // Fijos / overlays
-    private lateinit var tvTituloFijo: TextView
-    private lateinit var fondoImage: ImageView
-    private lateinit var logoFondo: ImageView
+    // UI principales
     private lateinit var btnListen: ImageButton
+    private lateinit var qrImage: ImageView
     private lateinit var celebrationImage: ImageView
-    private lateinit var qrImageOverlayLegacy: ImageView // compat. antigua
+    private lateinit var contenedorIntencion: FrameLayout
+    private lateinit var tvInstrucciones: TextView
 
-    // FAQ
+    // FAQs
     private lateinit var btnFaqMax: Button
     private lateinit var btnFaqDisney: Button
     private lateinit var btnFaqWifi: Button
     private lateinit var btnFaqCanales: Button
-
-    // Contenedor dinámico
-    private lateinit var contenedorIntencion: FrameLayout
-    private lateinit var tvInstrucciones: TextView
+    private lateinit var btnFaq5G: Button
 
     private val requestCodeSpeech = 100
-    private val uiHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Permisos
         ActivityCompat.requestPermissions(
             this,
             arrayOf(Manifest.permission.RECORD_AUDIO),
             requestCodeSpeech
         )
 
-        // Views
-        tvTituloFijo = findViewById(R.id.tvTituloFijo)
-        fondoImage = findViewById(R.id.fondoImage)
-        logoFondo = findViewById(R.id.logoFondo)
+        // Vistas
         btnListen = findViewById(R.id.btnListen)
+        qrImage = findViewById(R.id.qrImage)
         celebrationImage = findViewById(R.id.bgCelebration)
-        qrImageOverlayLegacy = findViewById(R.id.qrImage)
         contenedorIntencion = findViewById(R.id.contenedorIntencion)
         tvInstrucciones = findViewById(R.id.tvInstrucciones)
 
@@ -65,31 +55,21 @@ class MainActivity : AppCompatActivity() {
         btnFaqDisney = findViewById(R.id.btnFaqDisney)
         btnFaqWifi = findViewById(R.id.btnFaqWifi)
         btnFaqCanales = findViewById(R.id.btnFaqCanales)
+        btnFaq5G = findViewById(R.id.btnFaq5G)
 
-        // Estado inicial
-        showInstructions()
-
-        // Mic
         btnListen.requestFocus()
-        btnListen.setOnClickListener { startSpeechRecognition() }
 
-        // FAQs
+        // Clicks FAQ
+        btnListen.setOnClickListener { startSpeechRecognition() }
         btnFaqMax.setOnClickListener { showImage(R.drawable.max, "Instrucciones para activar Max") }
         btnFaqDisney.setOnClickListener { showImage(R.drawable.disney, "Instrucciones para activar Disney+") }
         btnFaqWifi.setOnClickListener { showWifiCard() }
         btnFaqCanales.setOnClickListener { showMisCanales() }
+        btnFaq5G.setOnClickListener { show5GVideo() }   // <-- ahora abre el video
 
-        // Back → limpia contenedor (vuelve a instrucciones)
-        onBackPressedDispatcher.addCallback(this) {
-            val showingInstructions =
-                tvInstrucciones.parent != null && tvInstrucciones.visibility == View.VISIBLE
-            if (!showingInstructions && contenedorIntencion.childCount > 0) {
-                showInstructions()
-            } else {
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
-            }
-        }
+        // Estado inicial
+        qrImage.visibility = View.GONE
+        celebrationImage.visibility = View.GONE
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -100,20 +80,16 @@ class MainActivity : AppCompatActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
-    // ---------------- Reconocimiento de voz ----------------
     private fun startSpeechRecognition() {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-CL")
             putExtra(RecognizerIntent.EXTRA_PROMPT, "Habla ahora…")
         }
         try {
             startActivityForResult(intent, requestCodeSpeech)
         } catch (e: Exception) {
-            showText("No se pudo iniciar el reconocimiento de voz: ${e.message}")
+            showText("Error: ${e.message}")
         }
     }
 
@@ -121,117 +97,280 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == requestCodeSpeech && resultCode == RESULT_OK) {
             val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            val userSpeech = result?.get(0) ?: "No se reconoció nada"
+            val userSpeech = result?.get(0) ?: return
             interpretCommand(userSpeech)
         }
     }
 
-    // ---------------- Utilidades de render ----------------
-    private fun showInstructions() {
-        contenedorIntencion.removeAllViews()
-        tvInstrucciones.visibility = View.VISIBLE
-        contenedorIntencion.addView(tvInstrucciones)
-        hideCelebration()
-        hideLegacyQrOverlay()
+    /** ---------- INTENCIONES POR VOZ ---------- **/
+    private fun interpretCommand(transcript: String) {
+        val lower = transcript.lowercase().trim()
+
+        when {
+            // --- MAX ---
+            listOf("max", "hbo max").any { lower.contains(it) } -> {
+                showImage(R.drawable.max, "Instrucciones para activar Max")
+            }
+
+            // --- Disney ---
+            listOf("disney", "disney+").any { lower.contains(it) } -> {
+                showImage(R.drawable.disney, "Instrucciones para activar Disney+")
+            }
+
+            // --- 5G / VoLTE / 4G -> video YouTube ---
+            listOf("5g", "vo lte", "volte", "4g", "activar 5g").any { lower.contains(it) } -> {
+                show5GVideo()
+            }
+
+            // --- Cambiar Wi-Fi (frases simples + variantes con guion y configuración) ---
+            listOf(
+                // Frases directas
+                "contraseña wifi", "contrasena wifi", "contraseña wi-fi", "contrasena wi-fi",
+                "cambiar clave de red",
+                "cambiar clave wifi", "cambiar clave wi-fi",
+                "cambiar contraseña wifi", "cambiar contrasena wifi",
+                "cambiar contraseña wi-fi", "cambiar contrasena wi-fi",
+                "cambiar password wifi", "cambiar password wi-fi",
+                "cambiar nombre de red",
+                "renombrar wifi", "renombrar wi-fi",
+                // Configuración
+                "configuracion wifi", "configuración wifi",
+                "configuracion wi-fi", "configuración wi-fi",
+                // Accesos rápidos
+                "clave wifi", "wifi", "wi-fi"
+            ).any { lower.contains(it) } -> {
+                showWifiCard()
+            }
+
+            // --- Diagnóstico de internet ---
+            listOf(
+                "no tengo internet",
+                "estoy sin conexion", "estoy sin conexión",
+                "sin internet", "sin conexion", "sin conexión",
+                "se cayo", "se cayó",
+                "no hay internet",
+                "problemas de internet", "problemas con internet",
+                "no funciona internet", "no me funciona el internet",
+                "internet lento",
+                "tengo problemas de internet"
+            ).any { lower.contains(it) } -> {
+                showDiagnosticoCard()
+            }
+
+            // --- Mis Canales / Canales Premium ---
+            listOf(
+                "mis canales",
+                "canales premium",
+                "ver canales premium",
+                "contratar premium",
+                "contratar canales premium",
+                "que canales premium tengo", "qué canales premium tengo",
+                "cuales son mis canales", "cuáles son mis canales",
+                "que canales tengo", "qué canales tengo"
+            ).any { lower.contains(it) } -> {
+                showMisCanales()
+            }
+
+            // --- Ejecutivo (QR) ---
+            listOf("hablar con alguien", "necesito ayuda", "ejecutivo", "me contacten").any { lower.contains(it) } -> {
+                showQrInContainer()
+            }
+
+            // --- Listas genéricas (texto) ---
+            listOf("noticias", "canales de noticias", "quiero ver noticias", "informativo").any { lower.contains(it) } -> {
+                showText("Noticias disponibles: CNN Chile HD (54), T13 HD (56), CHV HD (66), Canal 13 HD (67).")
+            }
+            listOf("deportes", "canales de deporte", "ver deportes", "partido").any { lower.contains(it) } -> {
+                showText("Deportes: ESPN HD (212), ESPN 2 HD (214), ESPN 3 HD (216), ESPN 4 (213), ESPN 6 (211).")
+            }
+
+            // --- Canales específicos ---
+            lower.contains("chilevisión") || lower.contains("chv") -> {
+                showChannelCard("Chilevisión", "66")
+            }
+            lower.contains("mega") -> {
+                showChannelCard("Mega HD", "65")
+            }
+            lower.contains("tnt sport") || lower.contains("tnt deportes") -> {
+                showChannelCard("TNT Sports", "109")
+            }
+            lower.contains("playboy") -> {
+                showChannelCard("Playboy", "401", contratable = true)
+            }
+
+            // --- Celebration ---
+            (listOf("eduardo", "edu", "idea").any { lower.contains(it) } &&
+                    (lower.contains("gustó") || lower.contains("gusto"))) -> {
+                showCelebration()
+                showText("¡Gracias por el apoyo! 🎊")
+            }
+
+            else -> showText("No entendí tu solicitud. ¿Puedes repetirlo de otra manera?")
+        }
     }
 
+    /** ---------- HELPERS DE CONTENIDO DINÁMICO ---------- **/
+
     private fun clearDynamicArea() {
+        // Pausa y destruye cualquier WebView para evitar fugas y audio corriendo
+        destroyWebViewsRecursively(contenedorIntencion)
+
         contenedorIntencion.removeAllViews()
+        qrImage.visibility = View.GONE
+        celebrationImage.visibility = View.GONE
         tvInstrucciones.visibility = View.GONE
+    }
+
+    private fun destroyWebViewsRecursively(group: ViewGroup) {
+        for (i in 0 until group.childCount) {
+            val child = group.getChildAt(i)
+            when (child) {
+                is WebView -> {
+                    child.loadUrl("about:blank")
+                    child.onPause()
+                    child.removeAllViews()
+                    child.destroy()
+                }
+                is ViewGroup -> destroyWebViewsRecursively(child)
+            }
+        }
     }
 
     private fun showText(text: String) {
         clearDynamicArea()
         val tv = TextView(this).apply {
-            setText(text)
-            textSize = 20f
-            setLineSpacing(0f, 1.15f)
-            setPadding(16, 16, 16, 16)
-            setTextColor(0xFFFFFFFF.toInt())
+            this.text = text
+            textSize = 18f
+            setTextColor(Color.WHITE)
         }
-        contenedorIntencion.addView(
-            tv,
-            FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { gravity = Gravity.CENTER_VERTICAL }
-        )
+        contenedorIntencion.addView(tv)
     }
 
-    private fun showImage(resId: Int, contentDescription: String? = null) {
+    private fun showImage(drawableId: Int, altText: String) {
         clearDynamicArea()
         val iv = ImageView(this).apply {
-            setImageResource(resId)
-            scaleType = ImageView.ScaleType.FIT_CENTER
+            setImageResource(drawableId)
             adjustViewBounds = true
-            this.contentDescription = contentDescription
-            isFocusable = true
-            isFocusableInTouchMode = true
-        }
-        contenedorIntencion.addView(
-            iv,
-            FrameLayout.LayoutParams(
+            contentDescription = altText
+            layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { gravity = Gravity.CENTER_VERTICAL }
-        )
+            ).apply { gravity = Gravity.CENTER }
+        }
+        contenedorIntencion.addView(iv)
     }
 
-    // ---------------- Cards ----------------
-
-    /** Cambiar Wi‑Fi – mismo estilo (bg_card) */
-    private fun showWifiCard() {
+    private fun showQrInContainer() {
         clearDynamicArea()
 
+        // Card centrada con ancho del contenedor para que la leyenda no se corte
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(20, 20, 20, 20)
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(24), dp(24), dp(24), dp(24))
             background = resources.getDrawable(R.drawable.bg_card, theme)
             isFocusable = true
             isFocusableInTouchMode = true
         }
 
-        // Header: icono + título
-        val header = LinearLayout(this).apply {
+        val qr = ImageView(this).apply {
+            setImageResource(R.drawable.contactoentel)
+            adjustViewBounds = true
+            layoutParams = LinearLayout.LayoutParams(dp(240), dp(240)).apply {
+                bottomMargin = dp(16)
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
+            contentDescription = "QR para contacto con ejecutivo"
+        }
+
+        val caption = TextView(this).apply {
+            text = "Escanea este QR para contactarte con un ejecutivo"
+            textSize = 18f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setLineSpacing(0f, 1.05f)
+            includeFontPadding = false
+        }
+
+        card.addView(qr)
+        card.addView(caption)
+
+        contenedorIntencion.addView(
+            card,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { gravity = Gravity.CENTER }
+        )
+    }
+
+    private fun showCelebration() {
+        clearDynamicArea()
+        celebrationImage.setImageResource(R.drawable.celebration)
+        celebrationImage.visibility = View.VISIBLE
+    }
+
+    // --- Wi-Fi: Card Redes unificadas ---
+    private fun showWifiCard() {
+        clearDynamicArea()
+
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            background = resources.getDrawable(R.drawable.bg_card, theme) // translúcido
+            isFocusable = true
+            isFocusableInTouchMode = true
+        }
+
+        // Título con icono Wi-Fi
+        val titleRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
         val wifiIcon = ImageView(this).apply {
             setImageResource(R.drawable.ic_wifi)
-            contentDescription = "Icono Wi‑Fi"
+            layoutParams = LinearLayout.LayoutParams(dp(20), dp(20)).apply { rightMargin = dp(8) }
+            imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#B0D9FF"))
+            contentDescription = "Wi-Fi"
         }
-        val title = TextView(this).apply {
+        val tvTitle = TextView(this).apply {
             text = "Redes unificadas"
             textSize = 22f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(0xFFFFFFFF.toInt())
-            setPadding(8, 0, 0, 0)
+            setTextColor(Color.WHITE)
         }
-        header.addView(wifiIcon, LinearLayout.LayoutParams(24, 24))
-        header.addView(title)
-        card.addView(header)
+        titleRow.addView(wifiIcon)
+        titleRow.addView(tvTitle)
+        card.addView(titleRow)
 
-        // Subtítulo
-        val subtitle = TextView(this).apply {
+        val tvSub = TextView(this).apply {
             text = "Tu red 2.4 GHz y 5 GHz está unida"
             textSize = 16f
-            setTextColor(0xB3FFFFFF.toInt())
-            setPadding(0, 6, 0, 12)
+            setTextColor(Color.WHITE)
+            setPadding(0, dp(6), 0, dp(10))
         }
-        card.addView(subtitle)
+        card.addView(tvSub)
 
         // Nombre de red
-        val ssidRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val ssidRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 0, 0, dp(6))
+        }
         val ssidLabel = TextView(this).apply {
-            text = "Nombre de red:"
+            text = "Nombre de red:  "
             textSize = 18f
-            setTextColor(0xFFFFFFFF.toInt())
+            setTextColor(Color.WHITE)
         }
         val ssidValue = TextView(this).apply {
-            text = "  ExperienciaTV"
+            text = "ExperienciaTV"
             textSize = 18f
-            setTextColor(0xFFFFFFFF.toInt())
             setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.WHITE)
         }
         ssidRow.addView(ssidLabel)
         ssidRow.addView(ssidValue)
@@ -240,73 +379,58 @@ class MainActivity : AppCompatActivity() {
         // Clave
         val passRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 4, 0, 0)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 0, 0, dp(12))
         }
         val passLabel = TextView(this).apply {
-            text = "Clave:"
+            text = "Clave:  "
             textSize = 18f
-            setTextColor(0xFFFFFFFF.toInt())
+            setTextColor(Color.WHITE)
         }
         val passValue = TextView(this).apply {
-            text = "  ************"
+            text = "************"
             textSize = 18f
-            setTextColor(0xFFFFFFFF.toInt())
-            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.WHITE)
         }
         passRow.addView(passLabel)
         passRow.addView(passValue)
         card.addView(passRow)
 
-        // Botones (mismo estilo de FAQs)
+        // Botones cápsula
         val btnRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 16, 0, 0)
+            setPadding(0, 0, 0, 0)
         }
         val btnCambiarNombre = Button(this).apply {
-            text = "Cambiar nombre de red"
+            text = "CAMBIAR NOMBRE DE RED"
             isFocusable = true
             isFocusableInTouchMode = true
             background = resources.getDrawable(R.drawable.btn_highlight, theme)
             setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(0, dp(56), 1f).apply {
+                rightMargin = dp(12)
+            }
         }
         val btnCambiarClave = Button(this).apply {
-            text = "Cambiar clave"
+            text = "CAMBIAR CLAVE"
             isFocusable = true
             isFocusableInTouchMode = true
             background = resources.getDrawable(R.drawable.btn_highlight, theme)
             setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(0, dp(56), 1f)
         }
-        val lpWeight =
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                setMargins(0, 0, 12, 0)
-            }
-        val lpWeightRight =
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-        btnRow.addView(btnCambiarNombre, lpWeight)
-        btnRow.addView(btnCambiarClave, lpWeightRight)
+        btnRow.addView(btnCambiarNombre)
+        btnRow.addView(btnCambiarClave)
         card.addView(btnRow)
 
         // Advertencia
-        val warnRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 16, 0, 0)
-            gravity = Gravity.START
+        val warn = TextView(this).apply {
+            text = "⚠ Al cambiar el nombre o la clave, todos los dispositivos se desconectarán y deberás volver a conectarlos."
+            textSize = 13f
+            setTextColor(Color.parseColor("#C8D8E6"))
+            setPadding(0, dp(10), 0, 0)
         }
-        val warnIcon = TextView(this).apply {
-            text = "⚠"
-            textSize = 18f
-            setTextColor(0xFFFFD54F.toInt())
-            setPadding(0, 0, 6, 0)
-        }
-        val warnText = TextView(this).apply {
-            text =
-                "Al cambiar el nombre o la clave, todos los dispositivos se desconectarán y deberás volver a conectarlos."
-            textSize = 14f
-            setTextColor(0xFFB0BEC5.toInt())
-        }
-        warnRow.addView(warnIcon)
-        warnRow.addView(warnText)
-        card.addView(warnRow)
+        card.addView(warn)
 
         contenedorIntencion.addView(
             card,
@@ -315,17 +439,44 @@ class MainActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply { gravity = Gravity.CENTER_VERTICAL }
         )
-
-        // Acciones mock
-        btnCambiarNombre.setOnClickListener {
-            Toast.makeText(this, "Próximamente: cambio de nombre de red", Toast.LENGTH_SHORT).show()
-        }
-        btnCambiarClave.setOnClickListener {
-            Toast.makeText(this, "Próximamente: cambio de clave", Toast.LENGTH_SHORT).show()
-        }
     }
 
-    /** Mis Canales – SOLO vertical más compacto; horizontal se mantiene */
+    // --- Diagnóstico: muestra card simple de conectividad ---
+    private fun showDiagnosticoCard() {
+        clearDynamicArea()
+
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            background = resources.getDrawable(R.drawable.bg_card, theme)
+        }
+
+        val title = TextView(this).apply {
+            text = "Diagnóstico de conectividad"
+            textSize = 20f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.WHITE)
+        }
+        val body = TextView(this).apply {
+            text = "Estamos revisando tu conexión…\n• Verificando estado del router\n• Probando señal y latencia\n• Comprobando tus servicios contratados"
+            textSize = 16f
+            setTextColor(Color.WHITE)
+            setPadding(0, dp(8), 0, 0)
+        }
+
+        card.addView(title)
+        card.addView(body)
+
+        contenedorIntencion.addView(
+            card,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { gravity = Gravity.CENTER_VERTICAL }
+        )
+    }
+
+    // --- Mis Canales (usa layout XML con botones uniformes) ---
     private fun showMisCanales() {
         clearDynamicArea()
         val view = layoutInflater.inflate(R.layout.card_mis_canales, contenedorIntencion, false)
@@ -338,122 +489,159 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-
-    // ---------------- Overlays ----------------
-    private fun showCelebration(timeoutMs: Long = 5000L) {
-        celebrationImage.setImageResource(R.drawable.celebration)
-        celebrationImage.visibility = View.VISIBLE
-        uiHandler.removeCallbacksAndMessages(null)
-        uiHandler.postDelayed({ hideCelebration() }, timeoutMs)
+    // --- 5G: video embebido en WebView ---
+    private fun show5GVideo() {
+        // Video: https://youtu.be/RYJ8XOOrFbk
+        showYouTubeInContainer("https://youtu.be/RYJ8XOOrFbk")
     }
 
-    private fun hideCelebration() {
-        celebrationImage.visibility = View.GONE
-    }
+    private fun showYouTubeInContainer(youtubeUrlOrId: String) {
+        clearDynamicArea()
 
-    private fun hideLegacyQrOverlay() {
-        qrImageOverlayLegacy.visibility = View.GONE
-    }
+        val VIDEO_MAX_HEIGHT_DP = 320     // ↓ sube/baja si quieres más/menos alto
+        val SIDE_MARGIN_DP = 10
+        val VERT_MARGIN_DP = 10
 
-    // ---------------- Intenciones (voz) ----------------
-    private fun interpretCommand(transcript: String) {
-        val lower = transcript.lowercase()
-        when {
-            // Max
-            listOf("hbo max", "activar max", "quiero hbo", "quiero max", "max", "hbo")
-                .any { lower.contains(it) } ->
-                showImage(R.drawable.max, "Instrucciones para activar Max")
+        val view = layoutInflater.inflate(R.layout.card_youtube_embed, contenedorIntencion, false)
 
-            // Disney
-            listOf("disney+", "disney plus", "activar disney", "quiero disney", "disney")
-                .any { lower.contains(it) } ->
-                showImage(R.drawable.disney, "Instrucciones para activar Disney+")
+        // Ocultamos por si acaso
+        view.findViewById<TextView?>(R.id.tvTitle)?.visibility = View.GONE
 
-            // Cambiar Wi‑Fi
-            listOf(
-                "cambiar clave wifi", "contraseña wifi", "contrasena wifi",
-                "cambiar clave", "cambiar wifi", "clave de wifi",
-                "wifi", "wi-fi", "internet", "conexión", "conexion", "se cayó", "se cayo", "sin red"
-            ).any { lower.contains(it) } -> showWifiCard()
+        val web = view.findViewById<WebView>(R.id.webYouTube)
 
-            // Mis Canales / Ver canales / Canales premium
-            listOf("mis canales", "ver canales", "canales premium")
-                .any { lower.contains(it) } -> showMisCanales()
-
-            // Hablar con ejecutivo -> QR en contenedor
-            listOf(
-                "hablar con ejecutivo", "quiero hablar con un ejecutivo",
-                "ejecutivo", "atención", "atencion", "contactar",
-                "necesito ayuda", "me contacten"
-            ).any { lower.contains(it) } -> showQrInContainer()
-
-            // Info general
-            listOf("canales de noticias", "quiero ver noticias", "informativo", "noticias")
-                .any { lower.contains(it) } ->
-                showText("Noticias disponibles: CNN Chile HD (54), T13 HD (56), CHV HD (66), Canal 13 HD (67).")
-
-            listOf("canales de deporte", "ver deportes", "partido", "deportes")
-                .any { lower.contains(it) } ->
-                showText("Deportes: ESPN HD (212), ESPN 2 HD (214), ESPN 3 HD (216), ESPN 4 (213), ESPN 6 (211).")
-
-            // Canales específicos
-            lower.contains("chilevisión") || lower.contains("chilevision") || lower.contains("chv") ->
-                showChannelCard("Chilevisión", "66")
-            lower.contains("mega") ->
-                showChannelCard("Mega HD", "65")
-            lower.contains("tnt sports") || lower.contains("tnt sport") || lower.contains("tnt deportes") ->
-                showChannelCard("TNT Sports", "109")
-            lower.contains("playboy") || lower.contains("canal 401") || lower.contains("quiero playboy") ->
-                showChannelCard("Playboy", "401", contratable = true)
-
-            // Easter egg
-            (listOf("eduardo", "edu", "idea").any { lower.contains(it) } &&
-                    (lower.contains("gustó") || lower.contains("gusto"))) -> {
-                showCelebration()
-                showText("¡Gracias por el apoyo! 🎊")
-            }
-
-            else -> showText("No entendí tu solicitud. ¿Puedes repetirlo de otra manera?")
+        // Márgenes para que el borde superior se vea completo
+        (web.layoutParams as ViewGroup.MarginLayoutParams).apply {
+            leftMargin = dp(SIDE_MARGIN_DP)
+            rightMargin = dp(SIDE_MARGIN_DP)
+            topMargin = dp(VERT_MARGIN_DP)       // ← importante para que no “coma” el trazo de arriba
+            bottomMargin = dp(VERT_MARGIN_DP)
+            width = ViewGroup.LayoutParams.MATCH_PARENT
+            height = dp(VIDEO_MAX_HEIGHT_DP)     // límite de altura
+            web.layoutParams = this
         }
+
+        // Configuración WebView
+        val id = extractYoutubeId(youtubeUrlOrId) ?: youtubeUrlOrId
+        val html = buildYouTubeHtml(id)
+
+        with(web.settings) {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            mediaPlaybackRequiresUserGesture = false
+            useWideViewPort = true
+            loadWithOverviewMode = true
+        }
+        web.setBackgroundColor(Color.TRANSPARENT)
+        web.webChromeClient = WebChromeClient()
+        web.isFocusable = true
+        web.isFocusableInTouchMode = true
+        web.loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "utf-8", null)
+
+        contenedorIntencion.addView(
+            view,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                bottomMargin = dp(8)
+            }
+        )
     }
 
-    // Tarjeta simple para canales específicos (la de siempre)
+
+
+
+
+    private fun buildYouTubeHtml(videoId: String) = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            html,body { margin:0; background:transparent; }
+            .container { position:relative; padding-bottom:56.25%; height:0; overflow:hidden; }
+            .container iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <iframe
+              src="https://www.youtube.com/embed/$videoId?autoplay=1&mute=0&controls=1&fs=0&modestbranding=1&rel=0&enablejsapi=1&playsinline=1"
+              allow="autoplay; encrypted-media"
+              allowfullscreen="false">
+            </iframe>
+          </div>
+        </body>
+        </html>
+    """.trimIndent()
+
+    private fun extractYoutubeId(urlOrId: String): String? {
+        val u = urlOrId.trim()
+        val regexes = listOf(
+            ".*youtu\\.be/([A-Za-z0-9_-]{6,})".toRegex(),
+            ".*youtube\\.com.*[?&]v=([A-Za-z0-9_-]{6,}).*".toRegex(),
+            ".*youtube\\.com/embed/([A-Za-z0-9_-]{6,}).*".toRegex()
+        )
+        for (r in regexes) {
+            val m = r.matchEntire(u)
+            if (m != null) return m.groupValues[1]
+        }
+        return null
+    }
+
+    // --- Card simple para un canal específico ---
     private fun showChannelCard(nombre: String, numero: String, contratable: Boolean = false) {
         clearDynamicArea()
-        val container = LinearLayout(this).apply {
+
+        val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(16, 16, 16, 16)
+            background = resources.getDrawable(R.drawable.bg_card, theme)
         }
+
         val title = TextView(this).apply {
             text = nombre
-            textSize = 22f
+            textSize = 20f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(0xFFFFFFFF.toInt())
+            setTextColor(Color.WHITE)
         }
-        val subtitle = TextView(this).apply {
+        val info = TextView(this).apply {
             text = "Canal $numero"
             textSize = 18f
-            setTextColor(0xFFFFFFFF.toInt())
+            setTextColor(Color.WHITE)
+            setPadding(0, 6, 0, 0)
         }
-        container.addView(title)
-        container.addView(subtitle)
+
+        card.addView(title)
+        card.addView(info)
+
         if (contratable) {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.END
+                setPadding(0, 12, 0, 0)
+            }
             val btn = Button(this).apply {
-                text = "Contratar canal"
+                text = "CONTRATAR"
+                setTextColor(Color.WHITE)
+                background = resources.getDrawable(R.drawable.btn_translucent_slim, theme)
                 isFocusable = true
                 isFocusableInTouchMode = true
-                setOnClickListener {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "¡Felicidades! Has contratado el canal",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                minWidth = 0
+                minHeight = 0
+                layoutParams = LinearLayout.LayoutParams(dp(120), dp(28))
+                setPadding(0, 0, 0, 0)
+                gravity = Gravity.CENTER
+                textSize = 13f
+                includeFontPadding = false
             }
-            container.addView(btn)
+            row.addView(btn)
+            card.addView(row)
         }
+
         contenedorIntencion.addView(
-            container,
+            card,
             FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -461,32 +649,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun showQrInContainer() {
-        clearDynamicArea()
-        val wrapper = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(16, 16, 16, 16)
-        }
-        val iv = ImageView(this).apply {
-            setImageResource(R.drawable.contactoentel)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            contentDescription = "Código QR para hablar con un ejecutivo"
-        }
-        val tv = TextView(this).apply {
-            text = "Escanea el código para que te contactemos"
-            textSize = 18f
-            setTextColor(0xFFFFFFFF.toInt())
-            setPadding(0, 12, 0, 0)
-        }
-        wrapper.addView(iv, LinearLayout.LayoutParams(200, 200))
-        wrapper.addView(tv)
-        contenedorIntencion.addView(
-            wrapper,
-            FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { gravity = Gravity.CENTER_VERTICAL }
-        )
-    }
+    // helper dp -> px
+    private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 }

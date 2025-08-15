@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/bg_card">
+
+    <!-- Sección 1 -->
+    <TextView
+        android:id="@+id/tvContratadosTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Canales Premium contratados"
+        android:textColor="#FFFFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_tv_check"
+            android:tint="#7CFC6A"
+            android:contentDescription="@null"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TNT Sports Premium HD"
+            android:textColor="#FFFFFFFF"
+            android:textSize="16sp"
+            android:includeFontPadding="false"
+            android:lineSpacingMultiplier="1.05" />
+    </LinearLayout>
+
+    <!-- Sección 2 -->
+    <TextView
+        android:id="@+id/tvDisponiblesTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Disponibles para contratar"
+        android:textColor="#FFFFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp" />
+
+    <!-- Lista compacta -->
+    <LinearLayout
+        android:id="@+id/listDisponibles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- FILA 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_tv_check"
+                android:tint="#9FD2FF"
+                android:contentDescription="@null"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="TNT Sports Premium SD – $9.990/mes"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="1.05" />
+
+            <Button
+                android:id="@+id/btnContratar1"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:minHeight="0dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="CONTRATAR"
+                android:textSize="13sp"
+                android:textColor="#FFFFFFFF"
+                android:includeFontPadding="false"
+                android:background="@drawable/btn_translucent_slim"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+
+        <!-- FILA 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_tv_check"
+                android:tint="#9FD2FF"
+                android:contentDescription="@null"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Fox Sports Premium – $9.990/mes"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="1.05" />
+
+            <Button
+                android:id="@+id/btnContratar2"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:minHeight="0dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="CONTRATAR"
+                android:textSize="13sp"
+                android:textColor="#FFFFFFFF"
+                android:includeFontPadding="false"
+                android:background="@drawable/btn_translucent_slim"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+
+        <!-- FILA 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_tv_check"
+                android:tint="#9FD2FF"
+                android:contentDescription="@null"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Playboy HD – $6.990/mes"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="1.05" />
+
+            <Button
+                android:id="@+id/btnContratar3"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:minHeight="0dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="CONTRATAR"
+                android:textSize="13sp"
+                android:textColor="#FFFFFFFF"
+                android:includeFontPadding="false"
+                android:background="@drawable/btn_translucent_slim"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+
+        <!-- FILA 4 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_tv_check"
+                android:tint="#9FD2FF"
+                android:contentDescription="@null"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Pack Adulto – $8.990/mes"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="1.05" />
+
+            <Button
+                android:id="@+id/btnContratar4"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:minHeight="0dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="CONTRATAR"
+                android:textSize="13sp"
+                android:textColor="#FFFFFFFF"
+                android:includeFontPadding="false"
+                android:background="@drawable/btn_translucent_slim"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+
+        <!-- FILA 5 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_tv_check"
+                android:tint="#9FD2FF"
+                android:contentDescription="@null"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Venus – $6.990/mes"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="1.05" />
+
+            <Button
+                android:id="@+id/btnContratar5"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:minHeight="0dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="CONTRATAR"
+                android:textSize="13sp"
+                android:textColor="#FFFFFFFF"
+                android:includeFontPadding="false"
+                android:background="@drawable/btn_translucent_slim"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Pie -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Puedes contratar o desuscribir canales en cualquier momento."
+        android:textColor="#FFB0BEC5"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

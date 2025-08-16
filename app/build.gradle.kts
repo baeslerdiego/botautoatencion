@@ -4,9 +4,6 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
 }
 
-
-apply(plugin = "kotlin-kapt") // 👈 Agregado aquí
-
 android {
     namespace = "com.entel.copiloto"
     compileSdk = 34
@@ -17,14 +14,16 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
@@ -32,20 +31,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    kotlinOptions { jvmTarget = "17" }
 }
 
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.leanback:leanback:1.0.0")
+
+    // Leanback para Android TV
+    implementation("androidx.leanback:leanback:1.1.0-rc02")
+
     implementation("com.google.android.material:material:1.11.0")
 
-    // GLIDE
+    // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     kapt("com.github.bumptech.glide:compiler:4.16.0")
 }
-
